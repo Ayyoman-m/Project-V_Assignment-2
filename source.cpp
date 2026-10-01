@@ -4,29 +4,44 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
+// Struct to store student details
 struct STUDENT_DATA {
-    std::string firstName;
-    std::string lastName;
+    string firstName;
+    string lastName;
+#ifdef PRE_RELEASE
+    string email;
+#endif
 };
 
 int main() {
-    std::vector<STUDENT_DATA> students;
-    std::ifstream inputFile("StudentData.txt");
+    // Mode banner message
+#ifdef PRE_RELEASE
+    cout << "Application is running: PRE-RELEASE MODE" << endl;
+    string filename = "StudentData_Emails.txt";
+#else
+    cout << "Application is running: STANDARD MODE" << endl;
+    string filename = "StudentData.txt";
+#endif
 
-    if (!inputFile.is_open()) {
-        std::cerr << "Error: Could not open StudentData.txt" << std::endl;
+    vector<STUDENT_DATA> students;
+    ifstream file(filename);
+
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << filename << endl;
         return 1;
     }
 
-    std::string line;
-    while (std::getline(inputFile, line)) {
+    string line;
+    while (getline(file, line)) {
         if (line.empty()) continue;
 
-        std::stringstream ss(line);
-        std::string lastName, firstName;
+        stringstream ss(line);
+        string lastName, firstName;
 
-        if (std::getline(ss, lastName, ',') && std::getline(ss, firstName, ',')) {
-            // Trim leading whitespace
+        if (getline(ss, lastName, ',') && getline(ss, firstName, ',')) {
+            // Remove leading space from first name if present
             if (!firstName.empty() && firstName[0] == ' ') {
                 firstName.erase(0, 1);
             }
@@ -34,16 +49,31 @@ int main() {
             STUDENT_DATA student;
             student.lastName = lastName;
             student.firstName = firstName;
+
+#ifdef PRE_RELEASE
+            string email;
+            if (getline(ss, email, ',')) {
+                // Remove leading space from email if present
+                if (!email.empty() && email[0] == ' ') {
+                    email.erase(0, 1);
+                }
+                student.email = email;
+            }
+#endif
             students.push_back(student);
         }
     }
-    inputFile.close();
+    file.close();
 
-    // Step 4: Print all student information ONLY in Debug mode
+    // Debug output: print student records to console
 #ifdef _DEBUG
-    std::cout << "[DEBUG MODE: Displaying " << students.size() << " Student Records]" << std::endl;
-    for (const auto& student : students) {
-        std::cout << student.lastName << ", " << student.firstName << std::endl;
+    cout << "\n[DEBUG MODE: Student Records (" << students.size() << " loaded)]" << endl;
+    for (const auto& s : students) {
+        cout << s.lastName << ", " << s.firstName;
+#ifdef PRE_RELEASE
+        cout << " | " << s.email;
+#endif
+        cout << endl;
     }
 #endif
 
